@@ -1,6 +1,5 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-require 'vagrant-digitalocean'
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
@@ -8,7 +7,7 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :trusty do |c|
     c.vm.hostname  = 'itamae-trusty'
-    c.vm.hostname += "-#{ENV['WERCKER_BUILD_ID']}" if ENV['WERCKER_BUILD_ID']
+    c.vm.hostname += "-#{ENV['TRAVIS_BUILD_ID']}" if ENV['TRAVIS_BUILD_ID']
     c.vm.provider :virtualbox do |provider, override|
       override.vm.box = "ubuntu/trusty64"
       override.vm.provision :shell, inline: <<-EOC
@@ -23,11 +22,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     c.vm.provider :digital_ocean do |provider, override|
-      override.ssh.private_key_path = '~/.ssh/id_rsa.vagrant'
+      override.ssh.private_key_path = '../../id_rsa.vagrant'
       override.vm.box = 'digital_ocean'
       override.vm.box_url = "https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box"
 
-      provider.ssh_key_name = ENV['WERCKER'] ? 'vagrant/wercker/itamae' : 'Vagrant'
+      provider.ssh_key_name = ENV['CI'] ? 'vagrant/wercker/itamae' : 'Vagrant'
       provider.token = ENV['DIGITALOCEAN_TOKEN']
       provider.image = 'ubuntu-14-04-x64' # ubuntu
       provider.region = 'nyc3'

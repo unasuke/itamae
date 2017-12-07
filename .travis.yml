@@ -1,3 +1,26 @@
 language: ruby
+sudo: enabled
+rvm:
+  - 2.2
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install libxml2-dev libxslt1-dev
+  - wget https://releases.hashicorp.com/vagrant/2.0.1/vagrant_2.0.1_x86_64.deb
+  - sudo dpkg --install vagrant_2.0.1_x86_64.deb
+install:
+  - bundle config build.nokogiri -- --use-system-libraries
+  - bundle install --jobs=4
+before_script:
+  - wget https://gist.github.com/unasuke/7517fe71aef333cd65826d9cd9db5258/raw/993bedcede3137a04d493f3ac3177d2ad6e8108c/vagrant_wercker_itamae_digitalocean_id_rsa.enc
+  - wget https://gist.github.com/unasuke/7517fe71aef333cd65826d9cd9db5258/raw/993bedcede3137a04d493f3ac3177d2ad6e8108c/vagrant_wercker_itamae_digitalocean_id_rsa.pub.enc
+  - openssl aes-256-cbc -K $encrypted_5056240f84a6_key -iv $encrypted_5056240f84a6_iv -in vagrant_wercker_itamae_digitalocean_id_rsa.enc -out id_rsa.vagrant -d
+  - openssl aes-256-cbc -K $encrypted_5056240f84a6_key -iv $encrypted_5056240f84a6_iv -in vagrant_wercker_itamae_digitalocean_id_rsa.enc -out id_rsa.vagrant.pub -d
+  - chmod 600 id_rsa.vagrant
+  - vagrant plugin install vagrant-digitalocean
+  - cd spec/integration && vagrant up --provider=digital_ocean
+script:
+  - bundle exec rake spec
+after_script:
+  - cd spec/integration && vagrant destroy --force
 notifications:
   email: false
